@@ -8,13 +8,9 @@ to make a reproducible scientific project named
 To (locally) reproduce this project, do the following:
 
 0. Create a project directory where you will check out multiple repos. There:
-1. `git clone https://github.com/Circo-dev/CircoCore.jl`
-1. `cd CircoCore.jl`
-1. `julia --project -e 'using Pkg; Pkg.instantiate()'`
-1. `cd ..`
 1. `git clone https://github.com/Circo-dev/Circo`
 1. `cd Circo`
-1. `julia --project -e 'using Pkg; Pkg.add(path="../CircoCore.jl"); Pkg.instantiate()'`
+1. `julia --project -e 'using Pkg; Pkg.add(url="https://github.com/Circo-dev/CircoCore.jl"); Pkg.instantiate()'`
 1. `cd ..`
 1. `git clone https://github.com/Circo-dev/Circo.js`
 1. `cd Circo.js`
@@ -31,6 +27,14 @@ From your `project_dir/ExploreInfotonOpt`
    $ julia --project -t 4
 
    julia> include("scripts/treesim.jl")
+   ```
+You will get back the prompt in the REPL where you can ask for stats, plot graph, etc. (Logs will be written to the screen, press Enter if you do not see the prompt.).
+
+#### Start the Camera Diserta monitoring tool
+
+In another terminal, from your `project_dir/Circo.js`
+   ```
+   $ npm run serve
    ```
 
 
