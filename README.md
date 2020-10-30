@@ -8,9 +8,13 @@ to make a reproducible scientific project named
 To (locally) reproduce this project, do the following:
 
 0. Create a project directory where you will check out multiple repos. There:
+1. `git clone https://github.com/Circo-dev/CircoCore.jl`
+1. `cd CircoCore.jl`
+1. `julia --project -e 'using Pkg; Pkg.instantiate()'`
+1. `cd ..`
 1. `git clone https://github.com/Circo-dev/Circo`
 1. `cd Circo`
-1. `julia --project -e 'using Pkg; Pkg.add(url="https://github.com/Circo-dev/CircoCore.jl"); Pkg.instantiate()'`
+1. `julia --project -e 'using Pkg; Pkg.add(path="../CircoCore.jl"); Pkg.instantiate()'`
 1. `cd ..`
 1. `git clone https://github.com/Circo-dev/Circo.js`
 1. `cd Circo.js`
