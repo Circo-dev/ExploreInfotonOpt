@@ -4,16 +4,36 @@ This code base is using the Julia Language and [DrWatson](https://juliadynamics.
 to make a reproducible scientific project named
 > ExploreInfotonOpt
 
+#### Install
 To (locally) reproduce this project, do the following:
 
-0. Download this code base. Notice that raw data are typically not included in the
-   git-history and may need to be downloaded independently.
-1. Open a Julia console and do:
+0. Create a project directory where you will check out multiple repos. There:
+1. `git clone https://github.com/Circo-dev/CircoCore.jl`
+1. `cd CircoCore.jl`
+1. `julia --project -e 'using Pkg; Pkg.instantiate()'`
+1. `cd ..`
+1. `git clone https://github.com/Circo-dev/Circo`
+1. `cd Circo`
+1. `julia --project -e 'using Pkg; Pkg.add(path="../CircoCore.jl"); Pkg.instantiate()'`
+1. `cd ..`
+1. `git clone https://github.com/Circo-dev/Circo.js`
+1. `cd Circo.js`
+1. `npm install`
+1. `cd ..`
+1. `git clone https://github.com/Circo-dev/ExploreInfotonOpt`
+1. `cd ExploreInfotonOpt`
+1. `julia --project -e 'using Pkg; Pkg.instantiate()'`
+
+#### Run simulations
+
+From your `project_dir/ExploreInfotonOpt`
    ```
-   julia> using Pkg
-   julia> Pkg.activate("path/to/this/project")
-   julia> Pkg.instantiate()
+   $ julia --project -t 4
+
+   julia> include("scripts/treesim.jl")
    ```
 
-This will install all necessary packages for you to be able to run the scripts and
-everything should work out of the box.
+
+Check `scripts/` and `src/` for details.
+
+You will also need to read the [Circo docs](https://circo-dev.github.io/Circo-docs/dev/).
