@@ -4,23 +4,12 @@
 
 module SearchTreeTest
 
+export conf, setconf
+    
 using Circo, DataStructures, LinearAlgebra
 
-# Infoton optimization parameters
-const TARGET_DISTANCE = 150.0
-const I = 1.0
-
-# Tree parameters
-const ITEM_COUNT = 1_000_000
-const ITEMS_PER_LEAF = 1000
-const SIBLINGINFO_FREQ = 2 #0..255
-const SIBLINGINFO_ENERGY = -1.0
-const FULLSPEED_PARALLELISM = 1000
-const SCHEDULER_TARGET_ACTORCOUNT = 700.0
-
-# View parameters
-const RED_AFTER = ITEMS_PER_LEAF * 0.95 - 1
-const NODESCALE_FACTOR = 1 / ITEMS_PER_LEAF / 2
+include("searchtree_config.jl")
+using .SearchTreeConf
 
 # Test Coordinator that fills the tree and sends Search requests to it
 mutable struct Coordinator{TCoreState} <: Actor{TCoreState}
@@ -32,6 +21,11 @@ mutable struct Coordinator{TCoreState} <: Actor{TCoreState}
     core::TCoreState
     Coordinator(core) = new{typeof(core)}(STOP, 0, 0, 0, nulladdr, core)
 end
+
+Circo.monitorprojection(::Type{<:Coordinator}) = JS("{
+    geometry: new THREE.SphereBufferGeometry(25, 7, 7),
+    color: 0xcb3c33
+}")
 
 # Implement monitorextra() to publish part of an actor's state on the UI
 Circo.monitorextra(me::Coordinator)  = (
@@ -77,30 +71,43 @@ Circo.monitorextra(me::TreeNode) =
         if (actor.extra.left) {
             return { x: 0.4 , y: 0.5, z: 0.4 }
         } else {
-            return { x: 0.2 + actor.extra.size * $NODESCALE_FACTOR , y: 0.2 + actor.extra.size * $NODESCALE_FACTOR, z: 0.2 + actor.extra.size * $NODESCALE_FACTOR }
+            return { x: 0.2 + actor.extra.size * $(conf[].NODESCALE_FACTOR) , y: 0.2 + actor.extra.size * $(conf[].NODESCALE_FACTOR), z: 0.2 + actor.extra.size * $(conf[].NODESCALE_FACTOR) }
         }
     },
     color: function(actor) {
-        return actor.extra.size < $RED_AFTER ? 0x389826 : (actor.extra.left ? 0x9558b2 : 0xcb3c33)
+        return actor.extra.size < $(conf[].RED_AFTER) ? 0x389826 : (actor.extra.left ? 0x9558b2 : 0xcb3c33)
     }
 }")
 
 # --- Infoton optimization. We overwrite the default behaviors to allow easy experimentation
 
 # Schedulers pull/push their actors based on the number of actors they schedule
-# SCHEDULER_TARGET_ACTOURCOUNT configures the target actorcount.
-@inline function actorcount_scheduler_infoton(scheduler, actor::Actor)
+
+# In this version SCHEDULER_TARGET_ACTOURCOUNT configures the target actor count.
+# @inline function actorcount_scheduler_infoton(scheduler, actor::Actor)
+#     dist = norm(scheduler.pos - actor.core.pos)
+#     countdiff = Float64(conf[].SCHEDULER_TARGET_ACTORCOUNT - scheduler.actorcount)
+#     (countdiff == 0.0 || dist == 0.0) && return Infoton(scheduler.pos, 0.0)
+#     energy = sign(countdiff) * log(abs(countdiff)) * conf[].SCHEDULER_FORCE_STRENGTH # disabled: "/ dist" would mean that force degrades linearly with distance.
+#     !isnan(energy) || error("Scheduler infoton energy is NaN")
+#     return Infoton(scheduler.pos, energy)
+# end
+
+# In this version SCHEDULER_TARGET_LOAD configures the target load (message queue length).
+@inline function load_scheduler_infoton(scheduler, actor::Actor)
     dist = norm(scheduler.pos - actor.core.pos)
-    dist === 0.0 && return Infoton(scheduler.pos, 0.0)
-    energy = (SCHEDULER_TARGET_ACTORCOUNT - scheduler.actorcount) * 2e-4  # disabled: "/ dist" would mean that force degrades linearly with distance.
+    loaddiff = Float64(conf[].SCHEDULER_TARGET_LOAD - length(scheduler.msgqueue))
+    (loaddiff == 0.0 || dist == 0.0) && return Infoton(scheduler.pos, 0.0)
+    energy = sign(loaddiff) * log(abs(loaddiff)) * conf[].SCHEDULER_LOAD_FORCE_STRENGTH
+    !isnan(energy) || error("Scheduler infoton energy is NaN")
     return Infoton(scheduler.pos, energy)
 end
 
-Circo.scheduler_infoton(scheduler, actor::Actor) = actorcount_scheduler_infoton(scheduler, actor)
+Circo.scheduler_infoton(scheduler, actor::Actor) = load_scheduler_infoton(scheduler, actor)
 
 @inline Circo.check_migration(me::Union{TreeNode, Coordinator}, alternatives::MigrationAlternatives, service) = begin
-    if length(alternatives) < 5 && rand(UInt8) == 0
-        @debug "Only $(length(alternatives)) alternatives at $(box(me)) : $alternatives"
+    if length(alternatives) < conf[].SCHEDULER_COUNT - 1 && rand(UInt8) == 0
+        @warn "Only $(length(alternatives)) alternatives at $(box(me)) : $alternatives"
     end
     # if rand(UInt16) == 0
     #     target = rand(alternatives.peers)
@@ -116,12 +123,16 @@ end
 @inline Circo.apply_infoton(targetactor::Actor, infoton::Infoton) = begin
     diff = infoton.sourcepos - targetactor.core.pos
     difflen = norm(diff)
+    difflen == 0 && return nothing
     energy = infoton.energy
-    if energy > 0 && difflen < TARGET_DISTANCE# || energy < 0 && difflen > TARGET_DISTANCE * 20
+    !isnan(energy) || error("Incoming infoton energy is NaN")
+    if energy > 0 && difflen < conf[].TARGET_DISTANCE# || energy < 0 && difflen > conf[].TARGET_DISTANCE * 0.10
         return nothing # Comment out this line to preserve (absolute) energy. This version seems to work better.
-        energy = -energy
+        #energy = -energy
     end
-    targetactor.core.pos += diff / difflen * energy * I
+    stepvect = diff / difflen * energy * conf[].I
+    all(x -> !isnan(x), stepvect) || error("stepvect $stepvect contains NaN")
+    targetactor.core.pos += stepvect
     return nothing
 end
 
@@ -175,7 +186,7 @@ end
 # to the coordinator. If the tree is not filled fully (as configured by ITEM_COUNT), then a new value
 # may also be inserted with some probability
 function startround(me::Coordinator, service, parallel = 1)
-    if me.size < ITEM_COUNT && rand() <  0.2 + me.size / ITEM_COUNT * 0.8
+    if me.size < conf[].ITEM_COUNT && rand() <  0.2 + me.size / conf[].ITEM_COUNT * 0.8
         send(service, me, me.root, Add(genvalue()))
         me.size += 1
     end
@@ -196,7 +207,7 @@ function Circo.onmessage(me::Coordinator, message::SearchResult, service)
     me.core.pos = Pos(0, 0, 0)
     me.resultcount += 1
     if time_ns() > me.lastreportts + 10_000_000_000
-        @info("Searches/sec since last report: $(round(me.resultcount * 1e9 / (time_ns() - me.lastreportts)))")
+        @info "Searches/sec since last report: $(round(me.resultcount * 1e9 / (time_ns() - me.lastreportts)))"
         me.resultcount = 0
         me.lastreportts = time_ns()
     end
@@ -215,6 +226,7 @@ function Circo.onmessage(me::Coordinator, message::RecipientMoved, service) # TO
 end
 
 function Circo.onmessage(me::Coordinator, message::Debug.Stop, service)
+    @info "Coordinator stopping."
     me.runmode = STOP
 end
 
@@ -233,7 +245,7 @@ end
 function Circo.onmessage(me::Coordinator, message::Debug.Run, service)
     oldmode = me.runmode
     me.runmode = FULLSPEED
-    oldmode == STOP && startround(me, service, FULLSPEED_PARALLELISM)
+    oldmode == STOP && startround(me, service, conf[].FULLSPEED_PARALLELISM)
 end
 
 function Circo.onmessage(me::Coordinator, message::Debug.Step, service)
@@ -277,7 +289,7 @@ function Circo.onmessage(me::TreeNode, message::Add, service)
     me.size += 1
     if isnothing(me.splitvalue)
         push!(me.values, message.value)
-        if length(me.values) > ITEMS_PER_LEAF
+        if length(me.values) > conf[].ITEMS_PER_LEAF
             split(me, service)
         end
     else
@@ -312,8 +324,8 @@ function Circo.onmessage(me::TreeNode, message::Search, service)
         child = message.value > me.splitvalue ? me.right : me.left
         send(service, me, child, message)
     end
-    if SIBLINGINFO_FREQ > 0 && !isnothing(me.sibling) && rand(UInt8) < SIBLINGINFO_FREQ
-        send(service, me, me.sibling, SiblingInfo(me.size), SIBLINGINFO_ENERGY) # To push the sibling away
+    if conf[].SIBLINGINFO_FREQ > 0 && !isnothing(me.sibling) && rand(UInt8) < conf[].SIBLINGINFO_FREQ
+        send(service, me, me.sibling, SiblingInfo(me.size), conf[].SIBLINGINFO_ENERGY) # To push the sibling away
     end
 end
 
