@@ -35,3 +35,15 @@ send(host, coordinator, Circo.Debug.Run())
 # stop/restart when code changed (better to restart Julia for now)
 # shutdown!(host)
 # @async host()
+
+# Periodically print stats. Stop with p = false 
+# p = true
+# t = @async while p
+#     println("")
+#     @info "Searches/sec since last report: $(round(coordinator.resultcount * 1e9 / (time_ns() - coordinator.lastreportts)))"
+#     coordinator.resultcount = 0
+#     coordinator.lastreportts = time_ns()
+#     println(hoststats(host;clear=false))
+#     println(local_rate(host))
+#     sleep(10)
+# end
