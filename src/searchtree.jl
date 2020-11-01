@@ -207,7 +207,7 @@ function Circo.onmessage(me::Coordinator, message::SearchResult, service)
     me.core.pos = Pos(0, 0, 0)
     me.resultcount += 1
     if time_ns() > me.lastreportts + 10_000_000_000
-        @info "Searches/sec since last report: $(round(me.resultcount * 1e9 / (time_ns() - me.lastreportts)))"
+        #@info "Searches/sec since last report: $(round(me.resultcount * 1e9 / (time_ns() - me.lastreportts)))"
         me.resultcount = 0
         me.lastreportts = time_ns()
     end
