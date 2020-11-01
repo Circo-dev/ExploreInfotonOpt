@@ -20,10 +20,11 @@ p = true # Print stats
 
 @info "Waiting for Circo node to start up"
 @async begin
-    sleep(12.0)
+    sleep(15.0)
     @info "Running the simulation"
-    send(host, coordinator, Circo.Debug.Run())        
+    send(host, coordinator, Circo.Debug.Run())
 
+    sleep(15.0)
     @info "Periodically printing stats. Stop with p = false"
     t = @async while true
         if p
