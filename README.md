@@ -28,7 +28,7 @@ To (locally) reproduce this project, do the following:
 
 From your `project_dir/ExploreInfotonOpt`
    ```
-   $ julia --project -t 4
+   $ julia --project
 
    julia> include("scripts/treesim.jl")
    ```
