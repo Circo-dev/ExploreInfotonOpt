@@ -161,7 +161,7 @@ struct SiblingInfo
     size::UInt64
 end
 
-genvalue() = rand(UInt32)
+genvalue(;usediv = false) = UInt32(round(rand(UInt32) / (usediv ? conf[].SEARCHKEY_SPACE_DIV : 1)))
 nearpos(pos::Pos=nullpos, maxdistance=10.0) = pos + Pos(rand() * maxdistance, rand() * maxdistance, rand() * maxdistance)
 
 function Circo.onspawn(me::Coordinator, service)
@@ -199,7 +199,7 @@ function startround(me::Coordinator, service, parallel = 1)
         sleep(0.001)
     end
     for i in 1:parallel
-        send(service, me, me.root, Search(genvalue(), addr(me)))
+        send(service, me, me.root, Search(genvalue(;usediv = true), addr(me)))
     end
 end
 
