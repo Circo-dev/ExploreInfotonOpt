@@ -61,7 +61,7 @@ end
 Circo.monitorextra(me::TreeNode) =
 (left = isnothing(me.left) ? nothing : me.left.box,
  right = isnothing(me.right) ? nothing : me.right.box,
- sibling = isnothing(me.sibling) ? nothing : me.sibling.box,
+ sibling = isnothing(me.sibling) || !conf[].SHOW_SIBLING_CONN ? nothing : me.sibling.box,
  splitval = me.splitvalue,
  size = me.size)
 
@@ -162,7 +162,7 @@ struct SiblingInfo
 end
 
 genvalue(;usediv = false) = UInt32(round(rand(UInt32) / (usediv ? conf[].SEARCHKEY_SPACE_DIV : 1)))
-nearpos(pos::Pos=nullpos, maxdistance=10.0) = pos + Pos(rand() * maxdistance, rand() * maxdistance, rand() * maxdistance)
+nearpos(pos::Pos=nullpos, maxdistance=50.0) = pos + Pos(rand() * maxdistance, rand() * maxdistance, rand() * maxdistance)
 
 function Circo.onspawn(me::Coordinator, service)
     @debug "onspawn: $me"
@@ -186,7 +186,7 @@ end
 # to the coordinator. If the tree is not filled fully (as configured by ITEM_COUNT), then a new value
 # may also be inserted with some probability
 function startround(me::Coordinator, service, parallel = 1)
-    if me.size < conf[].ITEM_COUNT && rand() <  0.2 + me.size / conf[].ITEM_COUNT * 0.8
+    if me.size < conf[].ITEM_COUNT && rand() <  0.001 + me.size / conf[].ITEM_COUNT * conf[].FILL_RATE
         send(service, me, me.root, Add(genvalue()))
         me.size += 1
     end

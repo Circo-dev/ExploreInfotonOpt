@@ -16,11 +16,33 @@ coordinator = SearchTreeTest.Coordinator(emptycore(ctx))
 host = Host(ctx, conf[].SCHEDULER_COUNT; zygote=[coordinator])
 @async host()
 
-@info "Waiting for Circo node to start up"
-sleep(12.0)
+p = true # Print stats
 
-@info "Running the simulation"
-send(host, coordinator, Circo.Debug.Run())
+@info "Waiting for Circo node to start up"
+@async begin
+    sleep(12.0)
+    @info "Running the simulation"
+    send(host, coordinator, Circo.Debug.Run())        
+
+    @info "Periodically printing stats. Stop with p = false"
+    t = @async while true
+        if p
+            while p
+                println("")
+                @info "Searches/sec since last report: $(round(coordinator.resultcount * 1e9 / (time_ns() - coordinator.lastreportts)))"
+                coordinator.resultcount = 0
+                coordinator.lastreportts = time_ns()
+                println(hoststats(host;clear=false))
+                println("$(Int(round(local_rate(host) * 100)))% local messages")
+                sleep(10)
+            end
+        else
+            sleep(1)
+        end
+    end
+end
+
+# Pause the simulation:
 #send(host, coordinator, Circo.Debug.Stop())
 
 # Rate of local messages
@@ -35,15 +57,3 @@ send(host, coordinator, Circo.Debug.Run())
 # stop/restart when code changed (better to restart Julia for now)
 # shutdown!(host)
 # @async host()
-
-# Periodically print stats. Stop with p = false 
-# p = true
-# t = @async while p
-#     println("")
-#     @info "Searches/sec since last report: $(round(coordinator.resultcount * 1e9 / (time_ns() - coordinator.lastreportts)))"
-#     coordinator.resultcount = 0
-#     coordinator.lastreportts = time_ns()
-#     println(hoststats(host;clear=false))
-#     println(local_rate(host))
-#     sleep(10)
-# end
