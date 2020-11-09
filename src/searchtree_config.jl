@@ -18,11 +18,13 @@ const conf = Ref(
         I = 1.0,
         TARGET_DISTANCE = 180.0,
         SCHEDULER_TARGET_LOAD = 20,
-        SCHEDULER_LOAD_FORCE_STRENGTH = 2e-2,
-        #SCHEDULER_TARGET_ACTORCOUNT = 100.0,
-        #SCHEDULER_FORCE_STRENGTH = 1.3e-2,
+        SCHEDULER_LOAD_FORCE_STRENGTH = 0.01,
+
         SIBLINGINFO_FREQ = 1, # 0..255
         SIBLINGINFO_ENERGY = -1.0,
+
+        #SCHEDULER_TARGET_ACTORCOUNT = 100.0,
+        #SCHEDULER_FORCE_STRENGTH = 1.3e-2,
 
         # View parameters
         RED_AFTER = ITEMS_PER_LEAF * 0.95 - 1,

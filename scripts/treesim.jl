@@ -29,13 +29,17 @@ p = true # Print stats
     t = @async while true
         if p
             while p
-                println("")
-                @info "Searches/sec since last report: $(round(coordinator.resultcount * 1e9 / (time_ns() - coordinator.lastreportts)))"
-                coordinator.resultcount = 0
-                coordinator.lastreportts = time_ns()
-                println(hoststats(host;clear=false))
-                println("$(Int(round(local_rate(host) * 100)))% local messages")
-                sleep(10)
+                try
+                    println("")
+                    @info "Searches/sec since last report: $(round(coordinator.resultcount * 1e9 / (time_ns() - coordinator.lastreportts)))"
+                    coordinator.resultcount = 0
+                    coordinator.lastreportts = time_ns()
+                    println(hoststats(host;clear=false))
+                    println("$(Int(round(local_rate(host) * 100)))% local messages")
+                    sleep(10)
+                catch e
+                    @show e
+                end
             end
         else
             sleep(1)
