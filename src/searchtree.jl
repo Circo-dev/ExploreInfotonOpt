@@ -1,18 +1,19 @@
-# SPDX-License-Identifier: MPL-2.0
-
 # Simple search tree for testing cluster functions and for analyzing infoton optimization strategies
 
 module SearchTreeTest
 
-export conf, setconf
+export conf, setconf, Coordinator
     
 using Circo, DataStructures, LinearAlgebra
+
+include("commons.jl")
 
 include("searchtree_config.jl")
 using .SearchTreeConf
 
+
 # Test Coordinator that fills the tree and sends Search requests to it
-mutable struct Coordinator{TCoreState} <: Actor{TCoreState}
+mutable struct Coordinator{TCoreState} <: TestActor{TCoreState}
     runmode::UInt8
     size::Int64
     resultcount::UInt64
@@ -48,7 +49,7 @@ const MEDIUM = 98
 const FULLSPEED = 100
 
 # Binary search tree that holds a set of TValue values in the leaves (max size of a leaf is ITEMS_PER_LEAF)
-mutable struct TreeNode{TValue, TCoreState} <: Actor{TCoreState}
+mutable struct TreeNode{TValue, TCoreState} <: TestActor{TCoreState}
     values::SortedSet{TValue}
     size::Int64
     left::Union{Addr, Nothing}
@@ -79,64 +80,7 @@ Circo.monitorextra(me::TreeNode) =
     }
 }")
 
-# --- Infoton optimization. We overwrite the default behaviors to allow easy experimentation
-
-# Schedulers pull/push their actors based on the number of actors they schedule
-
-# In this version SCHEDULER_TARGET_ACTOURCOUNT configures the target actor count.
-# @inline function actorcount_scheduler_infoton(scheduler, actor::Actor)
-#     dist = norm(scheduler.pos - actor.core.pos)
-#     countdiff = Float64(conf[].SCHEDULER_TARGET_ACTORCOUNT - scheduler.actorcount)
-#     (countdiff == 0.0 || dist == 0.0) && return Infoton(scheduler.pos, 0.0)
-#     energy = sign(countdiff) * log(abs(countdiff)) * conf[].SCHEDULER_FORCE_STRENGTH # disabled: "/ dist" would mean that force degrades linearly with distance.
-#     !isnan(energy) || error("Scheduler infoton energy is NaN")
-#     return Infoton(scheduler.pos, energy)
-# end
-
-# In this version SCHEDULER_TARGET_LOAD configures the target load (message queue length).
-@inline function load_scheduler_infoton(scheduler, actor::Actor)
-    dist = norm(scheduler.pos - actor.core.pos)
-    loaddiff = Float64(conf[].SCHEDULER_TARGET_LOAD - length(scheduler.msgqueue))
-    (loaddiff == 0.0 || dist == 0.0) && return Infoton(scheduler.pos, 0.0)
-    energy = sign(loaddiff) * log(abs(loaddiff)) * conf[].SCHEDULER_LOAD_FORCE_STRENGTH
-    !isnan(energy) || error("Scheduler infoton energy is NaN")
-    return Infoton(scheduler.pos, energy)
-end
-
-Circo.scheduler_infoton(scheduler, actor::Actor) = load_scheduler_infoton(scheduler, actor)
-
-@inline Circo.check_migration(me::Union{TreeNode, Coordinator}, alternatives::MigrationAlternatives, service) = begin
-    if length(alternatives) < conf[].SCHEDULER_COUNT - 1 && rand(UInt8) == 0
-        @warn "Only $(length(alternatives)) alternatives at $(box(me)) : $alternatives"
-    end
-    # if rand(UInt16) == 0
-    #     target = rand(alternatives.peers)
-    #     me.core.pos = target.pos + Pos(1.0, 1.0, 1.0)
-    #     @info "Random migration from $(addr(me)) to $target"
-    #     migrate(service, me, postcode(target))
-    #     return nothing
-    # end
-    migrate_to_nearest(me, alternatives, service)
-    return nothing
-end
-
-@inline Circo.apply_infoton(targetactor::Actor, infoton::Infoton) = begin
-    diff = infoton.sourcepos - targetactor.core.pos
-    difflen = norm(diff)
-    difflen == 0 && return nothing
-    energy = infoton.energy
-    !isnan(energy) || error("Incoming infoton energy is NaN")
-    if energy > 0 && difflen < conf[].TARGET_DISTANCE# || energy < 0 && difflen > conf[].TARGET_DISTANCE * 0.10
-        return nothing # Comment out this line to preserve (absolute) energy. This version seems to work better.
-        #energy = -energy
-    end
-    stepvect = diff / difflen * energy * conf[].I
-    all(x -> !isnan(x), stepvect) || error("stepvect $stepvect contains NaN")
-    targetactor.core.pos += stepvect
-    return nothing
-end
-
-# --- End of Infoton optimization
+include("infotonopt.jl")
 
 # Tree-messages
 struct Add{TValue}
@@ -337,7 +281,3 @@ end
 #function onmessage(me::TreeNode, message::SiblingInfo, service) end
 
 end
-
-zygote(ctx) = [SearchTreeTest.Coordinator(emptycore(ctx)) for i = 1:1]
-plugins(;options...) = [Debug.MsgStats(;options...)]
-profile(;options...) = Circo.Profiles.ClusterProfile(;options...)

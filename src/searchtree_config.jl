@@ -23,9 +23,6 @@ const conf = Ref(
         SIBLINGINFO_FREQ = 1, # 0..255
         SIBLINGINFO_ENERGY = -1.0,
 
-        #SCHEDULER_TARGET_ACTORCOUNT = 100.0,
-        #SCHEDULER_FORCE_STRENGTH = 1.3e-2,
-
         # View parameters
         RED_AFTER = ITEMS_PER_LEAF * 0.95 - 1,
         NODESCALE_FACTOR = 1 / ITEMS_PER_LEAF / 2,

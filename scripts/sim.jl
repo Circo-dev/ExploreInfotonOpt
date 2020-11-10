@@ -1,8 +1,15 @@
 using DrWatson, Circo
 @quickactivate "ExploreInfotonOpt"
 
-include("../src/searchtree.jl")
-using .SearchTreeTest
+const sim = :list # :tree, :list
+
+if sim == :tree
+    include("../src/searchtree.jl")
+    using .SearchTreeTest
+elseif sim == :list
+    include("../src/linkedlist.jl")
+    using .LinkedListTest
+end
 
 include("../src/stats.jl")
 
@@ -11,7 +18,7 @@ profile(;options...) = Circo.Profiles.ClusterProfile(;options...)
 
 # Run
 ctx = CircoContext(;profilefn = profile, userpluginsfn = plugins)
-coordinator = SearchTreeTest.Coordinator(emptycore(ctx))
+coordinator = Coordinator(emptycore(ctx))
 
 host = Host(ctx, conf[].SCHEDULER_COUNT; zygote=[coordinator])
 @async host()
@@ -31,9 +38,9 @@ p = true # Print stats
             while p
                 try
                     println("")
-                    @info "Searches/sec since last report: $(round(coordinator.resultcount * 1e9 / (time_ns() - coordinator.lastreportts)))"
-                    coordinator.resultcount = 0
-                    coordinator.lastreportts = time_ns()
+                    #@info "Searches/sec since last report: $(round(coordinator.resultcount * 1e9 / (time_ns() - coordinator.lastreportts)))"
+                    #coordinator.resultcount = 0
+                    #coordinator.lastreportts = time_ns()
                     println(hoststats(host;clear=false))
                     println("$(Int(round(local_rate(host) * 100)))% local messages")
                     sleep(10)
