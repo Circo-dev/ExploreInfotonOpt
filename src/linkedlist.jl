@@ -11,7 +11,7 @@ using Circo, Circo.Debug, Dates, Random, LinearAlgebra
 include("commons.jl")
 
 include("linkedlist_config.jl")
-using .SearchTreeConf
+using .LinkedListConf
 
 
 # Test coordinator: Creates the list and sends the reduce operations to it to calculate the sum
@@ -180,9 +180,9 @@ end
 function Circo.onmessage(me::ListItem, message::Reduce, service)
     newresult = message.op(message.result, me.data)
     send(service, me, me.next, Reduce(message.op, newresult))
-    #if isdefined(me, :prev)
-    #    send(service, me, me.prev, Ack())
-    #end
+    if me.prev != Addr()
+        send(service, me, me.prev, Ack())
+    end
 end
 
 Circo.onmessage(me::ListItem, message::Ack, service) = nothing
