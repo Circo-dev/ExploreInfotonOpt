@@ -17,15 +17,15 @@ version = "0.8.3"
 
 [[Circo]]
 deps = ["CircoCore", "DataStructures", "HTTP", "LinearAlgebra", "Logging", "MsgPack", "Plugins", "Reexport", "Sockets", "TypeParsers"]
-path = "../Circo"
+git-tree-sha1 = "efae049081312b8640e70eca740d1094e2c5a9e0"
 uuid = "36e45090-0d1b-4017-951a-c8c63491b169"
 version = "0.1.0"
 
 [[CircoCore]]
 deps = ["DataStructures", "LinearAlgebra", "Logging", "Plugins", "Random", "Serialization", "Sockets"]
-path = "../CircoCore.jl"
+git-tree-sha1 = "698ec35aeb0bf342505fda05bfe5f41a61f884c7"
 uuid = "b491a1cf-f6eb-411b-8d19-79c73dc191e5"
-version = "0.2.5"
+version = "0.2.6"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "SHA", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
