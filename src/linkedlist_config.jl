@@ -12,10 +12,10 @@ const conf = Ref(
         PARALLELISM = 100, # Number of parallel Reduce operations (firstly started in a single batch, but later they smooth out)
 
         # Infoton optimization parameters
-        I = 1.0,
-        TARGET_DISTANCE = 180.0,
-        SCHEDULER_TARGET_LOAD = 20,
-        SCHEDULER_LOAD_FORCE_STRENGTH = 0.01,
+        I = 0.2,
+        TARGET_DISTANCE = 20.0,
+        SCHEDULER_TARGET_LOAD = 13,
+        SCHEDULER_LOAD_FORCE_STRENGTH = 0.02,
 
         # View parameters
     )

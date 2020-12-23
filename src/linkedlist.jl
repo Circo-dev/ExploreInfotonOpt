@@ -22,8 +22,10 @@ mutable struct Coordinator{TCore} <: TestActor{TCore}
     avgreducetime::Float64
     lastreducets::UInt64
     list::Addr
+    resultcount::UInt64
+    lastreportts::UInt64
     core::TCore
-    Coordinator(core) = new{typeof(core)}(0, 0, false, 0.0, 0, Addr(), core)
+    Coordinator(core) = new{typeof(core)}(0, 0, false, 0.0, 0, Addr(), 0, 0, core)
 end
 
 boxof(addr) = !isnothing(addr) ? addr.box : nothing # Helper
@@ -225,9 +227,10 @@ function Circo.onmessage(me::Coordinator, message::Reduce, service)
     reducetime = ts - me.lastreducets
     me.lastreducets = ts
     me.avgreducetime = me.avgreducetime < 1e-3 ? Float64(reducetime) : (1.0 - alpha) * me.avgreducetime + alpha * Float64(reducetime)
-    if rand(UInt8) == 0
-        #@info "Avg reduce time of $(me.itemcount): $(me.avgreducetime / 1e6)ms"
-    end
+    me.resultcount += 1
+    #if rand(UInt8) == 0
+    #    @info "Avg reduce time of $(me.itemcount): $(me.avgreducetime / 1e6)ms"
+    #end
     if me.isrunning
         sumlist(me, service)
     end

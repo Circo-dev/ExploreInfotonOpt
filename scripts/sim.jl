@@ -23,34 +23,38 @@ coordinator = Coordinator(emptycore(ctx))
 host = Host(ctx, conf[].SCHEDULER_COUNT; zygote=[coordinator])
 @async host()
 
-p = true # Print stats
+p = Threads.nthreads() == 1 # Print stats only if single-threaded
 
 @info "Waiting for Circo node to start up"
 @async begin
     sleep(15.0)
     @info "Running the simulation"
     send(host, coordinator, Circo.Debug.Run())
-
-    sleep(15.0)
-    @info "Periodically printing stats. Stop with p = false"
-    t = @async while true
-        if p
-            while p
-                try
-                    println("")
-                    #@info "Searches/sec since last report: $(round(coordinator.resultcount * 1e9 / (time_ns() - coordinator.lastreportts)))"
-                    #coordinator.resultcount = 0
-                    #coordinator.lastreportts = time_ns()
-                    println(hoststats(host;clear=false))
-                    println("$(Int(round(local_rate(host) * 100)))% local messages")
-                    sleep(10)
-                catch e
-                    @show e
+    if p
+        sleep(15.0)
+        @info "Periodically printing stats. Stop with p = false"
+        t = @async while true
+            if p
+                while p
+                    try
+                        println("")
+                        @info "Searches or Reduces/sec since last report: $(round(coordinator.resultcount * 1e9 / (time_ns() - coordinator.lastreportts)))"
+                        coordinator.resultcount = 0
+                        coordinator.lastreportts = time_ns()
+                        stats = hoststats(host;clear=false)
+                        println(stats)
+                        println("$(sum(stats[:actorcount])) actors, $(Int(round(local_rate(host) * 100)))% local messages")
+                        sleep(10)
+                    catch e
+                        @show e
+                    end
                 end
+            else
+                sleep(1)
             end
-        else
-            sleep(1)
         end
+    else
+        @info "Stats printing is not thread-safe, disabled."
     end
 end
 
