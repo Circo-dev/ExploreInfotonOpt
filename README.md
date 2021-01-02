@@ -1,7 +1,8 @@
 # ExploreInfotonOpt
 
-This code base is using the Julia Language and [DrWatson](https://juliadynamics.github.io/DrWatson.jl/stable/)
-to make a reproducible scientific project.
+An environment for Infoton Optimization research.
+
+To reproduce the CITDS 2020 paper, check oput the [CITDSv1](https://github.com/Circo-dev/ExploreInfotonOpt/tree/CITDSv1) tag
 
 #### Prerequisites
 
