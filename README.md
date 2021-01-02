@@ -2,7 +2,7 @@
 
 An environment for Infoton Optimization research.
 
-To reproduce the CITDS 2020 paper, check oput the [CITDSv1](https://github.com/Circo-dev/ExploreInfotonOpt/tree/CITDSv1) tag
+To reproduce the CITDS 2020 paper, check out the [CITDSv1](https://github.com/Circo-dev/ExploreInfotonOpt/tree/CITDSv1) tag
 
 #### Prerequisites
 
