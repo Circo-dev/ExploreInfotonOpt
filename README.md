@@ -13,11 +13,11 @@ To reproduce the CITDS 2020 paper, check out the [CITDSv1](https://github.com/Ci
 To (locally) reproduce this project, do the following:
 
 0. Create a project directory where you will check out two repos. There:
-1. `git clone https://github.com/Circo-dev/ExploreInfotonOpt`
+1. `git clone https://github.com/Circo-dev/ExploreInfotonOpt` # for the CITDS paper: `--branch CITDSv1`
 2. `cd ExploreInfotonOpt`
 3. `julia --project -e 'using Pkg; Pkg.instantiate()'`
 4. `cd ..`
-5. `git clone https://github.com/Circo-dev/Circo.js`
+5. `git clone https://github.com/Circo-dev/Circo.js` # for the CITDS paper:  `--branch CITDSv1`
 6. `cd Circo.js`
 7. `npm install`
 
