@@ -2,7 +2,7 @@ using DataFrames
 
 function local_rate(host; clear=true)
     stats = hoststats(host; clear = clear);
-    return sum(stats[:,2]) / sum(stats[:,3])
+    return sum(stats[!,2]) / sum(stats[!,3])
 end
 
 function hoststats(host; clear=true)

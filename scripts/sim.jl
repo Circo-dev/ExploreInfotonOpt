@@ -1,7 +1,7 @@
 using DrWatson, Circo
 @quickactivate "ExploreInfotonOpt"
 
-const sim = :tree # :tree, :list
+const sim = :workerpool # :tree, :list, :workerpool
 
 if sim == :tree
     include("../src/searchtree.jl")
@@ -9,11 +9,14 @@ if sim == :tree
 elseif sim == :list
     include("../src/linkedlist.jl")
     using .LinkedListTest
+elseif sim == :workerpool
+    include("../src/workerpool.jl")
+    using .WorkerPool
 end
 
 include("../src/stats.jl")
 
-plugins(;options...) = [Debug.MsgStats(;options...)]
+plugins(;options...) = [Debug.MsgStats]
 profile(;options...) = Circo.Profiles.ClusterProfile(;options...)
 
 # Run
@@ -43,7 +46,7 @@ p = Threads.nthreads() == 1 # Print stats only if single-threaded
                         coordinator.lastreportts = time_ns()
                         stats = hoststats(host;clear=false)
                         println(stats)
-                        println("$(sum(stats[:actorcount])) actors, $(Int(round(local_rate(host) * 100)))% local messages")
+                        println("$(sum(stats[!, :actorcount])) actors, $(Int(round(local_rate(host) * 100)))% local messages")
                         sleep(10)
                     catch e
                         @show e

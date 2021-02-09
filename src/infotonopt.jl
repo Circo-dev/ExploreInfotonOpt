@@ -1,3 +1,5 @@
+using Circo, Circo.Migration
+
 # Schedulers pull/push their actors based on their load(message queue length).
 # SCHEDULER_TARGET_LOAD configures the target load .
 @inline @fastmath function load_scheduler_infoton(scheduler, actor::TestActor)
@@ -9,9 +11,9 @@
     return Infoton(scheduler.pos, energy)
 end
 
-Circo.scheduler_infoton(scheduler, actor::TestActor) = load_scheduler_infoton(scheduler, actor)
+Circo.scheduler_infoton(space::Space, scheduler, actor::TestActor) = load_scheduler_infoton(scheduler, actor)
 
-@inline Circo.check_migration(me::TestActor, alternatives::MigrationAlternatives, service) = begin
+@inline Circo.Migration.check_migration(me::TestActor, alternatives::MigrationAlternatives, service) = begin
     if length(alternatives) < conf[].SCHEDULER_COUNT - 1 && rand(UInt8) == 0
         @warn "Only $(length(alternatives)) alternatives at $(box(me)) : $alternatives"
     end
@@ -19,7 +21,7 @@ Circo.scheduler_infoton(scheduler, actor::TestActor) = load_scheduler_infoton(sc
     return nothing
 end
 
-@inline @fastmath Circo.apply_infoton(targetactor::TestActor, infoton::Infoton) = begin
+@inline @fastmath Circo.apply_infoton(space::Space, targetactor::TestActor, infoton::Infoton) = begin
     diff = infoton.sourcepos - targetactor.core.pos
     difflen = norm(diff)
     difflen == 0 && return nothing
