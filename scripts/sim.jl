@@ -1,7 +1,7 @@
 using DrWatson, Circo
 @quickactivate "ExploreInfotonOpt"
 
-const sim = :workerpool # :tree, :list, :workerpool
+const sim = :tree # :tree, :list, :workerpool
 
 if sim == :tree
     include("../src/searchtree.jl")
