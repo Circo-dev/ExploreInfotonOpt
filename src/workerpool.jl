@@ -2,15 +2,11 @@ module WorkerPool
 
 export conf, setconf, Coordinator
     
-using Circo, Circo.Migration
-using DataStructures, LinearAlgebra
-
-include("commons.jl")
+using Circo, Circo.Debug, Circo.Migration, Circo.Monitor, DataStructures, LinearAlgebra
+using ..Commons
 
 include("workerpool_config.jl")
 using .WorkerPoolConf
-
-include("infotonopt.jl")
 
 # Test Coordinator that creates several worker pools
 mutable struct Coordinator{TCoreState} <: TestActor{TCoreState}
@@ -21,7 +17,6 @@ mutable struct Coordinator{TCoreState} <: TestActor{TCoreState}
     core::TCoreState
     Coordinator(core) = new{typeof(core)}(STOP, 0, 0, [], core)
 end
-
 
 Circo.monitorprojection(::Type{<:Coordinator}) = JS("{
     geometry: new THREE.SphereBufferGeometry(25, 7, 7),

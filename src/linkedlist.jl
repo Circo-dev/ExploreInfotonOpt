@@ -6,12 +6,11 @@ module LinkedListTest
 
 export conf, setconf, Coordinator
 
-using Circo, Circo.Debug, Dates, Random, LinearAlgebra
-
-include("commons.jl")
+using Circo, Circo.Debug, Circo.Migration, Circo.Monitor, Dates, Random, LinearAlgebra
+using ..Commons
 
 include("linkedlist_config.jl")
-using .SearchTreeConf
+using .LinkedListConf
 
 
 # Test coordinator: Creates the list and sends the reduce operations to it to calculate the sum
@@ -68,8 +67,6 @@ Circo.monitorextra(me::ListItem) = (
 Circo.monitorprojection(::Type{<:ListItem}) = JS("{
     geometry: new THREE.BoxBufferGeometry(10, 10, 10)
 }")
-
-include("infotonopt.jl")
 
 struct Append <: Request
     replyto::Addr

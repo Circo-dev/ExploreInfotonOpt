@@ -4,9 +4,8 @@ module SearchTreeTest
 
 export conf, setconf, Coordinator
     
-using Circo, DataStructures, LinearAlgebra
-
-include("commons.jl")
+using Circo, Circo.Debug, Circo.Migration, Circo.Monitor, DataStructures, LinearAlgebra
+using ..Commons
 
 include("searchtree_config.jl")
 using .SearchTreeConf
@@ -36,14 +35,14 @@ Circo.monitorextra(me::Coordinator)  = (
 )
 
 # Binary search tree that holds a set of TValue values in the leaves (max size of a leaf is ITEMS_PER_LEAF)
-mutable struct TreeNode{TValue, TCoreState} <: TestActor{TCoreState}
+mutable struct TreeNode{TValue, TCore} <: TestActor{TCore}
     values::SortedSet{TValue}
     size::Int64
     left::Union{Addr, Nothing}
     right::Union{Addr, Nothing}
     sibling::Union{Addr, Nothing}
     splitvalue::Union{TValue, Nothing}
-    core::TCoreState
+    core::TCore
     TreeNode(values, core) = new{eltype(values), typeof(core)}(SortedSet(values), length(values), nothing, nothing, nothing, nothing, core)
 end
 Circo.monitorextra(me::TreeNode) =
@@ -66,8 +65,6 @@ Circo.monitorextra(me::TreeNode) =
         return actor.extra.size < $(conf[].RED_AFTER) ? 0x389826 : (actor.extra.left ? 0x9558b2 : 0xcb3c33)
     }
 }")
-
-include("infotonopt.jl")
 
 # Tree-messages
 struct Add{TValue}

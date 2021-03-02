@@ -1,7 +1,9 @@
-using DrWatson, Circo
+using DrWatson, Circo, Plugins
 @quickactivate "ExploreInfotonOpt"
 
-const sim = :tree # :tree, :list, :workerpool
+include("../src/commons.jl")
+
+const sim = :workerpool # :tree, :list, :workerpool
 
 if sim == :tree
     include("../src/searchtree.jl")
@@ -14,9 +16,12 @@ elseif sim == :workerpool
     using .WorkerPool
 end
 
+include("../src/infotonopt.jl")
 include("../src/stats.jl")
 
-plugins(;options...) = [Debug.MsgStats]
+Plugins.autoregister()
+
+plugins(;options...) = [ConfigurableInfotonOptimizer, Debug.MsgStats]
 profile(;options...) = Circo.Profiles.ClusterProfile(;options...)
 
 # Run
@@ -36,26 +41,7 @@ p = Threads.nthreads() == 1 # Print stats only if single-threaded
     if p
         sleep(15.0)
         @info "Periodically printing stats. Stop with p = false"
-        t = @async while true
-            if p
-                while p
-                    try
-                        println("")
-                        @info "Searches or Reduces/sec since last report: $(round(coordinator.resultcount * 1e9 / (time_ns() - coordinator.lastreportts)))"
-                        coordinator.resultcount = 0
-                        coordinator.lastreportts = time_ns()
-                        stats = hoststats(host;clear=false)
-                        println(stats)
-                        println("$(sum(stats[!, :actorcount])) actors, $(Int(round(local_rate(host) * 100)))% local messages")
-                        sleep(10)
-                    catch e
-                        @show e
-                    end
-                end
-            else
-                sleep(1)
-            end
-        end
+        start_stats_printer(coordinator, host)
     else
         @info "Stats printing is not thread-safe, disabled."
     end
