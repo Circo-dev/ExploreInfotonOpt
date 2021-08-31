@@ -3,7 +3,7 @@ using DrWatson, Circo, Plugins
 
 include("../src/commons.jl")
 
-const sim = :workerpool # :tree, :list, :workerpool
+const sim = :tree # :tree, :list, :workerpool
 
 if sim == :tree
     include("../src/searchtree.jl")

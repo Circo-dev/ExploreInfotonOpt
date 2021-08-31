@@ -11,9 +11,9 @@ end
 
 # Schedulers pull/push their actors based on their load(message queue length).
 # SCHEDULER_TARGET_LOAD configures the target load .
-@inline @fastmath function Circo.InfotonOpt.scheduler_infoton(_::ConfigurableInfotonOptimizer, scheduler, actor::TestActor)
+@inline @fastmath function Circo.InfotonOpt.scheduler_infoton(optimizer::ConfigurableInfotonOptimizer, scheduler, actor::TestActor)
     dist = norm(scheduler.pos - actor.core.pos)
-    loaddiff = Float64(conf[].SCHEDULER_TARGET_LOAD - length(scheduler.msgqueue))
+    loaddiff = Float64(conf[].SCHEDULER_TARGET_LOAD - optimizer.scheduler_load)
     (loaddiff == 0.0 || dist == 0.0) && return Infoton(scheduler.pos, 0.0)
     energy = sign(loaddiff) * log(abs(loaddiff)) * conf[].SCHEDULER_LOAD_FORCE_STRENGTH
     !isnan(energy) || error("Scheduler infoton energy is NaN")

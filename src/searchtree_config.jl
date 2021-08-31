@@ -2,13 +2,13 @@ module SearchTreeConf
 
 export conf, setconf
 
-const ITEMS_PER_LEAF = 100
+const ITEMS_PER_LEAF = 1000
 const conf = Ref(
     (
         SCHEDULER_COUNT = 20,
 
         # Tree parameters
-        ITEM_COUNT = 2000_000,
+        ITEM_COUNT = 200_000,
         ITEMS_PER_LEAF = ITEMS_PER_LEAF,
         FILL_RATE = 0.06,
         FULLSPEED_PARALLELISM = 1000,
@@ -16,8 +16,8 @@ const conf = Ref(
 
         # Infoton optimization parameters
         I = 0.2,
-        TARGET_DISTANCE = 200.0,
-        SCHEDULER_TARGET_LOAD = 4,
+        TARGET_DISTANCE = 500.0,
+        SCHEDULER_TARGET_LOAD = 12,
         SCHEDULER_LOAD_FORCE_STRENGTH = 0.02,
 
         # "Domain knowledge" params
