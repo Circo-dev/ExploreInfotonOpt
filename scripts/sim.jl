@@ -59,6 +59,6 @@ end
 # Change config (works for infoton opt and view) while the simulation is running
 # setconf(:TARGET_DISTANCE, 230.0)
 
-# stop/restart when code changed (better to restart Julia for now)
-# shutdown!(host)
+# stop/restart when code changed:
+# pause!(host)
 # @async host()

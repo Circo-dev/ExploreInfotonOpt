@@ -8,7 +8,7 @@ end
 function hoststats(host; clear=true)
     return DataFrame(map(host.schedulers) do scheduler
         msgstats = scheduler.plugins[:msgstats]
-        optimizer = scheduler.plugins[:optimizer]
+        optimizer = scheduler.plugins[:infoton_optimizer]
         if clear
             reset_hoststats(host)
         end

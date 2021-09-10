@@ -8,7 +8,7 @@ const conf = Ref(
         SCHEDULER_COUNT = 20,
 
         # Tree parameters
-        ITEM_COUNT = 200_000,
+        ITEM_COUNT = 80_000,
         ITEMS_PER_LEAF = ITEMS_PER_LEAF,
         FILL_RATE = 0.06,
         FULLSPEED_PARALLELISM = 1000,
@@ -16,9 +16,10 @@ const conf = Ref(
 
         # Infoton optimization parameters
         I = 0.2,
-        TARGET_DISTANCE = 500.0,
-        SCHEDULER_TARGET_LOAD = 12,
+        TARGET_DISTANCE = 200.0,
+        SCHEDULER_TARGET_LOAD = 8,
         SCHEDULER_LOAD_FORCE_STRENGTH = 0.02,
+        FIELD_STRENGTH = 2e-5,
 
         # "Domain knowledge" params
         SIBLINGINFO_FREQ = 1, # 0..255

@@ -93,7 +93,10 @@ genvalue(;usediv = false) = UInt32(round(rand(UInt32) / (usediv ? conf[].SEARCHK
 nearpos(pos::Pos=nullpos, maxdistance=50.0) = pos + Pos(rand() * maxdistance, rand() * maxdistance, rand() * maxdistance)
 
 function Circo.onspawn(me::Coordinator, service)
-    @debug "onspawn: $me"
+    start(me, service)
+end
+
+function start(me::Coordinator, service)
     me.core.pos = nearpos(nullpos, 100.0)
     me.root = createnode(Array{UInt32}(undef, 0), service, nearpos(me.core.pos))
     if me.runmode !== STOP
@@ -265,5 +268,29 @@ end
 
 # No need to handle the message for the infoton to work
 #function onmessage(me::TreeNode, message::SiblingInfo, service) end
+
+struct Destruct a::UInt8 end
+registermsg(Destruct; ui=true)
+
+Circo.onmessage(me::TreeNode, msg::Destruct, service) = begin
+    !isnothing(me.left) && send(service, me, me.left, Destruct(42))
+    !isnothing(me.right) && send(service, me, me.right, Destruct(42))
+    die(service, me)
+end
+
+struct Restart a::UInt8 end
+registermsg(Restart; ui=true)
+
+Circo.onmessage(me::Coordinator, msg::Restart, service) = begin
+    send(service, me, me.root, Destruct(42))
+    me.root = nulladdr
+    me.size = 0
+    me.resultcount = 0
+    me.lastreportts = 0
+    @async begin
+        sleep(1.0)
+        start(me, service)
+    end
+end
 
 end
